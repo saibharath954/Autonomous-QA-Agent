@@ -1,0 +1,28 @@
+# -------------------------------
+# PYTHON / FASTAPI BACKEND
+# -------------------------------
+
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environment
+env/
+venv/
+.venv/
+ENV/
+
+# Python cache
+*.pytest_cache/
+.pytest_cache/
+pytest_cache/
+.cache/
+
+# Local environment files
+*.env
+.env.*
+
+# FastAPI/uvicorn generated
+*.sqlite3
+*.db
