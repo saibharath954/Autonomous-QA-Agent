@@ -23,6 +23,132 @@ pytest_cache/
 *.env
 .env.*
 
+# Jupyter notebooks checkpoints
+.ipynb_checkpoints/
+
+# PyCharm / VSCode
+.idea/
+.vscode/
+*.code-workspace
+
+# Distribution / packaging
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# -------------------------------
+# STREAMLIT UI
+# -------------------------------
+
+streamlit_ui/__pycache__/
+streamlit_ui/.streamlit/secrets.toml
+.streamlit/
+
+# Prevent large generated files
+streamlit_ui/uploads/
+streamlit_ui/output/
+streamlit_ui/temp/
+
+# -------------------------------
+# VECTOR DATABASE / EMBEDDINGS
+# -------------------------------
+
+# Chroma DB persistence files
+chroma_db/
+backend/chroma_db/
+chromadb/
+*.duckdb
+*.parquet
+
+# Hugging Face models cache
+~/.cache/
+huggingface/
+hf_cache/
+sentence_transformers/
+backend/app/models_cache/
+
+# -------------------------------
+# LOGS & RUNTIME FILES
+# -------------------------------
+
+*.log
+logs/
+backend/logs/
+streamlit_ui/logs/
+
 # FastAPI/uvicorn generated
 *.sqlite3
 *.db
+
+# -------------------------------
+# FRONTEND / BUILD FILES
+# -------------------------------
+
+# Node
+node_modules/
+npm-debug.log
+yarn-debug.log
+yarn-error.log
+
+# Build
+build/
+package-lock.json
+*.DS_Store
+
+# -------------------------------
+# OS SPECIFIC
+# -------------------------------
+
+.DS_Store
+Thumbs.db
+
+# -------------------------------
+# PROJECT FILES
+# -------------------------------
+
+# Local asset storage
+assets/uploads/
+assets/generated/
+assets/tmp/
+
+# Docs auto-build
+docs/_build/
+docs/build/
+
+# -------------------------------
+# TESTING / EXPERIMENTS
+# -------------------------------
+
+# Test scripts, sandbox runs
+sandbox/
+scratch/
+tmp/
+temp/
+*.tmp
+*.bak
+
+# -------------------------------
+# SCRIPTS & OUTPUTS
+# -------------------------------
+
+scripts/output/
+scripts/generated/
+scripts/temp/
+
+# -------------------------------
+# LOCAL FILES USED FOR DEV
+# (e.g., your PDF under /mnt/data)
+# -------------------------------
+
+/mnt/data/

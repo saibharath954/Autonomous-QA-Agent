@@ -1,7 +1,9 @@
-from fastapi import FastAPI, UploadFile, File, Form
+from fastapi import Body, FastAPI, APIRouter, UploadFile, File, Form
 from fastapi.middleware.cors import CORSMiddleware
 from app.services.file_ingestion import process_uploaded_file
 from app.services.vector_db import VectorDB
+from app.services.kb_builder import KnowledgeBaseBuilder
+from app.services.file_ingestion import process_local_file
 
 app = FastAPI(title="Autonomous QA Agent Backend")
 
@@ -15,6 +17,26 @@ app.add_middleware(
 
 # Initialize vector DB
 vector_db = VectorDB()
+
+router = APIRouter()
+kb_builder = KnowledgeBaseBuilder(persist_dir="./chroma_db")
+
+@router.post("/build-kb-from-uploaded-path")
+def build_kb_from_path(path: str = Body(..., embed=True)):
+    """
+    Accepts JSON like: {"path":"uploaded_docs/E-Shop Checkout System.pdf"}
+    or call as a query param: POST /build-kb-from-uploaded-path?path=...
+    """
+    item = process_local_file(path)
+    res = kb_builder.build_from_texts([{
+        "source": item["metadata"]["source"],
+        "text": item["text"],
+        "type": item["metadata"]["type"]
+    }])
+    return res
+
+# IMPORTANT: include the router so routes are registered
+app.include_router(router)
 
 @app.get("/")
 def home():
