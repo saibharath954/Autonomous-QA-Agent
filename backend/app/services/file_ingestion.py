@@ -1,35 +1,51 @@
-# app/services/file_ingestion.py
 import json
 import fitz  # PyMuPDF
+import os
 from fastapi import UploadFile
 from app.utils.parser_utils import parse_html
-from typing import Dict, Any
-import os
+from typing import Tuple, Dict, Any
 
-async def process_uploaded_file(file: UploadFile):
+async def process_uploaded_file(file: UploadFile) -> Tuple[str, Dict[str, Any]]:
+    """
+    Reads an uploaded file directly from memory/stream and extracts text.
+    Returns: (extracted_text, metadata)
+    """
     filename = file.filename.lower()
+    content = await file.read() # Read file bytes
+    
+    text = ""
+    metadata = {"source": filename, "type": "unknown"}
 
     if filename.endswith(".pdf"):
-        doc = fitz.open(stream=await file.read(), filetype="pdf")
-        text = ""
-        for page in doc:
-            text += page.get_text()
-        metadata = {"source": filename, "type": "pdf"}
+        # Open PDF from bytes
+        with fitz.open(stream=content, filetype="pdf") as doc:
+            for page in doc:
+                text += page.get_text()
+        metadata["type"] = "pdf"
 
     elif filename.endswith(".json"):
-        content = json.loads((await file.read()).decode("utf-8"))
-        text = json.dumps(content, indent=2)
-        metadata = {"source": filename, "type": "json"}
+        data = json.loads(content.decode("utf-8"))
+        text = json.dumps(data, indent=2)
+        metadata["type"] = "json"
 
     elif filename.endswith(".html"):
-        raw = (await file.read()).decode("utf-8")
-        text = parse_html(raw)
-        metadata = {"source": filename, "type": "html"}
+        raw_html = content.decode("utf-8")
+        text = parse_html(raw_html)
+        metadata["type"] = "html"
+        
+        # PRODUCTION CHANGE: Save HTML locally briefly so ScriptGenerator can read it later
+        # In a real cloud app, you'd save this to S3. 
+        # overwriting a 'current_checkout.html' as a trade-off.
+        with open("uploaded_docs/checkout.html", "w", encoding="utf-8") as f:
+            f.write(raw_html)
 
-    else:
-        text = (await file.read()).decode("utf-8")
-        metadata = {"source": filename, "type": "text"}
+    else: # txt, md, etc.
+        text = content.decode("utf-8")
+        metadata["type"] = "text"
 
+    # Reset file cursor just in case
+    await file.seek(0)
+    
     return text, metadata
 
 def process_local_file(path: str) -> Dict[str, Any]:

@@ -29,7 +29,7 @@ class RAGService:
             text = doc['document']
             context_str += f"--- SOURCE {i+1}: {source} ---\n{text}\n\n"
 
-        # 4. Construct Strict System Prompt (Based on Assignment-1 Page 4 & 5)
+        # 4. Construct Strict System Prompt 
         system_prompt = """
         You are an intelligent QA Agent. Your goal is to generate comprehensive test cases based STRICTLY on the provided context.
         

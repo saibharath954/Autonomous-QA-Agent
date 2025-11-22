@@ -1,0 +1,13 @@
+UI/UX Guidelines
+
+1. Form Validation:
+   - All required fields must trigger an HTML5 validation warning if empty.
+   - Email validation errors must be displayed in red text (#FF0000).
+   - Error messages should appear inline next to the field.
+
+2. Buttons:
+   - The 'Pay Now' button should be green (#008000) to indicate a primary action.
+   - 'Apply' discount button should be standard gray.
+
+3. Success States:
+   - Upon successful payment, hide the form and display "Payment Successful!" in green text.

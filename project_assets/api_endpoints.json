@@ -1,0 +1,17 @@
+{
+  "endpoints": {
+    "POST /apply_coupon": {
+      "description": "Validates coupon code",
+      "payload": {"code": "string"},
+      "response": {"valid": "boolean", "discount_percent": "integer"}
+    },
+    "POST /submit_order": {
+      "description": "Processes final order",
+      "payload": {
+        "user": {"name": "string", "email": "string", "address": "string"},
+        "cart": [{"item_id": "string", "qty": "integer"}],
+        "shipping": "standard|express"
+      }
+    }
+  }
+}
