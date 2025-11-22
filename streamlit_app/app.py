@@ -31,35 +31,58 @@ with st.sidebar:
                 else:
                     st.error("Upload failed")
 
+# --- Session State Init ---
+if 'test_cases' not in st.session_state:
+    st.session_state['test_cases'] = []
+
 # --- Main Area: Test Case Generation ---
 st.subheader("1️⃣ Test Case Generation Agent")
-user_query = st.text_area("Describe the feature to test (e.g., 'Generate test cases for the Discount Code feature')", height=100)
+user_query = st.text_area("Describe the feature to test (e.g., 'Generate test cases for the Discount Code feature')", height=80)
 
 if st.button("Generate Test Cases"):
     if user_query:
-        with st.spinner("Consulting Knowledge Base & Generating Cases..."):
+        with st.spinner("Consulting Knowledge Base..."):
             try:
                 payload = {"query": user_query}
                 response = requests.post(f"{API_URL}/generate-testcases", data=payload)
-                
                 if response.status_code == 200:
                     data = response.json().get("results", [])
-                    
-                    if isinstance(data, list) and len(data) > 0:
-                        st.success(f"Generated {len(data)} Test Cases")
-                        
-                        # Display as Table
-                        df = pd.DataFrame(data)
-                        st.dataframe(df, use_container_width=True)
-                        
-                        # Store in session state for Phase 3 (Script Generation)
-                        st.session_state['test_cases'] = data
-                    else:
-                        st.warning("No test cases generated. Check the agent response or document context.")
-                        st.json(data) # Show raw if error
+                    st.session_state['test_cases'] = data # Save to session
+                    st.success(f"Generated {len(data)} Test Cases")
                 else:
                     st.error(f"Error: {response.status_code}")
             except Exception as e:
                 st.error(f"Connection Error: {e}")
-    else:
-        st.info("Please enter a query first.")
+
+# Display Results & Selection for Phase 3
+if st.session_state['test_cases']:
+    # Convert list of dicts to DataFrame for display
+    df = pd.DataFrame(st.session_state['test_cases'])
+    st.dataframe(df, use_container_width=True)
+
+    st.markdown("---")
+    st.subheader("2️⃣ Selenium Script Generation Agent")
+    
+    # Create a selection list mapping Test IDs to the actual objects
+    tc_options = [f"{tc['Test_ID']}: {tc['Test_Scenario']}" for tc in st.session_state['test_cases']]
+    selected_option = st.selectbox("Select a Test Case to Automate:", tc_options)
+    
+    if st.button("Generate Selenium Script"):
+        # Find the specific dict object for the selected ID
+        selected_index = tc_options.index(selected_option)
+        selected_test_case = st.session_state['test_cases'][selected_index]
+        
+        with st.spinner("Analyzing HTML & Writing Code..."):
+            try:
+                # Send as JSON string form data
+                payload = {"testcase_json": json.dumps(selected_test_case)}
+                response = requests.post(f"{API_URL}/generate-selenium-script", data=payload)
+                
+                if response.status_code == 200:
+                    script_content = response.json().get("script", "")
+                    st.subheader("🐍 Generated Python Selenium Script")
+                    st.code(script_content, language='python')
+                else:
+                    st.error("Failed to generate script")
+            except Exception as e:
+                st.error(f"Error: {e}")

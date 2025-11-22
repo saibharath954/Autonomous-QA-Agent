@@ -4,6 +4,7 @@ from app.services.file_ingestion import process_uploaded_file, process_local_fil
 from app.services.vector_db import VectorDB
 from app.services.kb_builder import KnowledgeBaseBuilder
 from app.services.rag_service import RAGService  # <--- Import RAG Service
+from app.services.script_generator import ScriptGeneratorService
 
 app = FastAPI(title="Autonomous QA Agent Backend")
 
@@ -18,6 +19,7 @@ app.add_middleware(
 vector_db = VectorDB()
 kb_builder = KnowledgeBaseBuilder(persist_dir="./chroma_db")
 rag_service = RAGService(persist_dir="./chroma_db") # <--- Initialize
+script_gen_service = ScriptGeneratorService()
 
 router = APIRouter()
 
@@ -57,9 +59,23 @@ async def generate_testcases(query: str = Form(...)):
     return {"results": results}
 # --------------------
 
+# --- UPDATED ENDPOINT ---
 @app.post("/generate-selenium-script")
 async def generate_script(testcase_json: str = Form(...)):
-    # Placeholder for Phase 3
-    return {"status": "Selenium script generator endpoint ready"}
+    """
+    Receives a single test case JSON string.
+    Returns generated Python code.
+    """
+    import json
+    try:
+        # Parse the JSON string back to a dict
+        test_case_dict = json.loads(testcase_json)
+        
+        # Generate Code
+        script = script_gen_service.generate_script(test_case_dict)
+        
+        return {"script": script}
+    except Exception as e:
+        return {"error": str(e)}
 
 app.include_router(router)
