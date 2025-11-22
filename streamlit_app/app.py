@@ -63,7 +63,14 @@ if st.button("Generate Test Cases"):
                         st.session_state['test_cases'] = data
                         st.success(f"Generated {len(data)} Test Cases")
                     else:
-                        st.warning("No test cases generated. The agent might not have found enough info.")
+                        st.warning(
+                            "No test cases were generated.\n\n"
+                            "Possible reasons:\n"
+                            "- The system could not find relevant information in the knowledge base.\n"
+                            "- Your query may be too short or unclear.\n"
+                            "- The agent could not extract structured test cases from the response.\n\n"
+                            "Try rephrasing your request or uploading more detailed documents."
+                        )
                         st.session_state['test_cases'] = [] # Clear state on empty
                 else:
                     st.error(f"Error: {response.status_code}")
