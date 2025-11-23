@@ -1,4 +1,4 @@
-from fastapi import FastAPI, APIRouter, UploadFile, File, Form, HTTPException
+from fastapi import FastAPI, APIRouter, UploadFile, File, Form, Header, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from typing import List
 from app.services.file_ingestion import process_uploaded_file
@@ -27,7 +27,10 @@ def home():
     return {"message": "QA Agent Backend Running"}
 
 @app.post("/upload-documents")
-async def upload_documents(files: List[UploadFile] = File(...)):
+async def upload_documents(
+    files: List[UploadFile] = File(...),
+    x_session_id: str = Header(..., alias="X-Session-ID") # Enforce Header
+):
     """
     Production Endpoint: Accepts multiple files, extracts text, 
     and builds the Knowledge Base immediately.
@@ -50,7 +53,7 @@ async def upload_documents(files: List[UploadFile] = File(...)):
         raise HTTPException(status_code=400, detail="No valid documents processed")
 
     # Build KB immediately
-    result = kb_builder.build_from_texts(processed_docs)
+    result = kb_builder.build_from_texts(processed_docs, session_id=x_session_id)
     
     return {
         "status": "success", 
@@ -59,8 +62,11 @@ async def upload_documents(files: List[UploadFile] = File(...)):
     }
 
 @app.post("/generate-testcases")
-async def generate_testcases(query: str = Form(...)):
-    results = rag_service.generate_test_cases(query)
+async def generate_testcases(
+    query: str = Form(...),
+    x_session_id: str = Header(..., alias="X-Session-ID") # Enforce Header
+):
+    results = rag_service.generate_test_cases(query, session_id=x_session_id)
     return {"results": results}
 
 @app.post("/generate-selenium-script")

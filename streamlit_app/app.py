@@ -2,6 +2,15 @@ import streamlit as st
 import requests
 import pandas as pd
 import json
+import uuid
+
+# Initialize Session ID once
+if 'session_id' not in st.session_state:
+    st.session_state['session_id'] = str(uuid.uuid4())
+
+if st.query_params:
+    st.query_params.clear()
+
 
 API_URL = "http://localhost:8000"
 
@@ -29,10 +38,10 @@ with st.sidebar:
                     files_payload.append(("files", (f.name, f.getvalue(), f.type)))
                 
                 try:
-                    response = requests.post(f"{API_URL}/upload-documents", files=files_payload)
+                    headers = {"X-Session-ID": st.session_state['session_id']}
+                    response = requests.post(f"{API_URL}/upload-documents", files=files_payload, headers=headers)
                     if response.status_code == 200:
                         st.success("✅ Knowledge Base Built Successfully!")
-                        st.json(response.json())
                     else:
                         st.error(f"Build failed: {response.text}")
                 except Exception as e:
@@ -49,8 +58,9 @@ if st.button("Generate Test Cases"):
     if user_query:
         with st.spinner("Consulting Knowledge Base..."):
             try:
+                headers = {"X-Session-ID": st.session_state['session_id']}
                 payload = {"query": user_query}
-                response = requests.post(f"{API_URL}/generate-testcases", data=payload)
+                response = requests.post(f"{API_URL}/generate-testcases", data=payload, headers=headers)
                 if response.status_code == 200:
                     data = response.json().get("results", [])
                     

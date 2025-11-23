@@ -11,10 +11,11 @@ class RAGService:
         self.embedder = EmbeddingService()
         self.llm = LLMProvider() 
 
-    def generate_test_cases(self, query: str, k: int = 5) -> List[Dict[str, Any]]:
+    # UPDATED: Accept session_id
+    def generate_test_cases(self, query: str, session_id: str, k: int = 5,) -> List[Dict[str, Any]]:
         # 1. Embed & Retrieve (Same as before)
         query_embedding = self.embedder.embed_texts([query])[0].tolist()
-        results = self.vector_db.query(query_embedding, n_results=k)
+        results = self.vector_db.query(query_embedding, n_results=k, session_id=session_id)
         
         # If absolutely no docs found in DB
         if not results:

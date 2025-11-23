@@ -45,7 +45,7 @@ class VectorDB:
         # Chroma expects lists
         self.collection.add(ids=ids, documents=texts, metadatas=metadatas, embeddings=embeddings)
 
-    def query(self, query_embedding: List[float], n_results: int = 5) -> List[Dict[str, Any]]:
+    def query(self, query_embedding: List[float], n_results: int = 5, session_id: str = None) -> List[Dict[str, Any]]:
         """
         Query by embedding: returns list of dicts with 'id', 'document', 'metadata', 'distance'
 
@@ -55,11 +55,14 @@ class VectorDB:
         # Preferred includes (avoid 'ids' which some Chroma versions reject)
         include = ['metadatas', 'documents', 'distances']
 
-        # perform query
+        # CRITICAL FIX: Add the 'where' filter
+        where_filter = {"session_id": session_id} if session_id else None
+
         results = self.collection.query(
             query_embeddings=[query_embedding],
             n_results=n_results,
-            include=include
+            include=include,
+            where=where_filter  # <--- This prevents cross-contamination
         )
 
         # results expected to be dict of lists (one entry per query)

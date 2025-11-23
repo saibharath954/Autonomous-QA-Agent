@@ -11,7 +11,7 @@ class KnowledgeBaseBuilder:
         self.embedder = EmbeddingService()
         self.vdb = VectorDB(persist_dir=persist_dir)
 
-    def build_from_texts(self, texts: List[Dict[str, Any]], chunk_size: int = 800, chunk_overlap: int = 150):
+    def build_from_texts(self, texts: List[Dict[str, Any]], session_id: str, chunk_size: int = 800, chunk_overlap: int = 150):
         """
         texts: list of dicts { "source": filename, "text": "...", "type": "pdf|html|json|text" }
         This will chunk each text, create embeddings, and add chunks to the vector DB with metadata.
@@ -28,7 +28,8 @@ class KnowledgeBaseBuilder:
                     "source": source,
                     "type": doc_type,
                     "chunk_index": i,
-                    "chunk_size_est": len(chunk)
+                    "chunk_size_est": len(chunk),
+                    "session_id": session_id
                 }
                 all_chunks.append(chunk)
                 all_metas.append(meta)
