@@ -1,3 +1,4 @@
+import os
 import streamlit as st
 import requests
 import pandas as pd
@@ -25,7 +26,7 @@ if 'uploaded_html_name' not in st.session_state:
 if st.query_params:
     st.query_params.clear()
 
-API_URL = "http://localhost:8000"
+API_URL = os.getenv("API_URL", st.secrets.get("API_URL", "http://localhost:8000"))
 
 # ====================================================
 # PAGE CONFIGURATION

@@ -9,9 +9,15 @@ from app.services.script_generator import ScriptGeneratorService
 
 app = FastAPI(title="Autonomous QA Agent Backend")
 
+origins = [
+    "http://localhost:8501",                 # local streamlit
+    "http://127.0.0.1:8501",
+    "https://test-script-ai.streamlit.app",  # production UI
+]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=origins,
     allow_methods=["*"],
     allow_headers=["*"],
 )
