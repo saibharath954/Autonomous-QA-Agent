@@ -86,6 +86,7 @@ backend/app/models_cache/
 logs/
 backend/logs/
 streamlit_ui/logs/
+backend/uploaded_docs/
 
 # FastAPI/uvicorn generated
 *.sqlite3

@@ -1,71 +1,120 @@
 import os
-from typing import Dict, Any
+import json
+from typing import Dict, Any, Optional
+from bs4 import BeautifulSoup
 from app.services.llm_provider import LLMProvider
 from app.services.vector_db import VectorDB
 
+
 class ScriptGeneratorService:
-    def __init__(self):
+    def __init__(self, upload_dir: str = "uploaded_docs"):
+        self.upload_dir = upload_dir
         self.llm = LLMProvider()
-        # We access VectorDB just in case we need extra doc context, 
-        # but primarily we need the raw HTML file for selectors.
-        self.vector_db = VectorDB()
+        self.vector_db = VectorDB()  # Only for extra text docs if needed
 
-    def _get_html_content(self) -> str:
+    # ------------------------------------------------------
+    # Load the session-specific HTML file
+    # ------------------------------------------------------
+    def _load_session_html(self, session_id: str) -> Optional[str]:
         """
-        Retrieves the raw HTML content of checkout.html.
-        In a real app, this might come from the DB, but for this assignment,
-        we look in the uploaded_docs folder as per the setup.
+        Loads the correct HTML file for this session.
+        Files are saved in the format:
+            checkout__<session_id>.html
         """
-        # Check common paths
-        possible_paths = [
-            "uploaded_docs/checkout.html", 
-            "../uploaded_docs/checkout.html",
-            "./checkout.html"
-        ]
-        
-        for path in possible_paths:
-            if os.path.exists(path):
-                with open(path, "r", encoding="utf-8") as f:
+        for fname in os.listdir(self.upload_dir):
+            if fname.endswith(f"__{session_id}.html"):
+                path = os.path.join(self.upload_dir, fname)
+                with open(path, "r", encoding="utf-8", errors="ignore") as f:
                     return f.read()
-        
-        return ""
+        return None
 
-    def generate_script(self, test_case: Dict[str, Any]) -> str:
-        # 1. Get the Target HTML (Crucial for accurate selectors)
-        html_content = self._get_html_content()
-        
-        # 2. Construct the Prompt
-        # Strict requirements from PDF: "Use appropriate selectors... based on actual HTML" [cite: 135]
+    # ------------------------------------------------------
+    # Extract useful selector metadata from HTML
+    # ------------------------------------------------------
+    def _extract_html_metadata(self, html: str) -> Dict:
+        soup = BeautifulSoup(html, "html.parser")
+
+        inputs = []
+        for element in soup.find_all(["input", "select", "textarea"]):
+            inputs.append({
+                "tag": element.name,
+                "type": element.get("type"),
+                "id": element.get("id"),
+                "name": element.get("name"),
+                "class": element.get("class"),
+                "placeholder": element.get("placeholder"),
+                "text": element.get_text(strip=True)
+            })
+
+        buttons = []
+        for btn in soup.find_all(["button", "input"]):
+            if btn.name == "button" or (btn.name == "input" and btn.get("type") in ["submit", "button"]):
+                buttons.append({
+                    "tag": btn.name,
+                    "id": btn.get("id"),
+                    "name": btn.get("name"),
+                    "class": btn.get("class"),
+                    "text": btn.get_text(strip=True) or btn.get("value")
+                })
+
+        return {
+            "inputs": inputs,
+            "buttons": buttons
+        }
+
+    # ------------------------------------------------------
+    # Build prompt with strong grounding
+    # ------------------------------------------------------
+    def _build_prompt(self, test_case: Dict, html_raw: str, meta: Dict) -> str:
         system_prompt = """
-        You are a Senior QA Automation Engineer specializing in Python and Selenium.
-        Your task is to convert a functional test case into a robust, executable Selenium script.
-        
+        You are a Senior QA Automation Engineer specializing in Selenium (Python).
+
         STRICT RULES:
-        1. Analyze the provided HTML code deeply to find the EXACT IDs, Names, or CSS Selectors.
-        2. Do NOT invent element IDs that do not exist in the provided HTML.
-        3. The script must be a standalone Python file including `import unittest` and `from selenium import webdriver`.
-        4. Use `webdriver.Chrome()` (headless mode optional but recommended).
-        5. Include assertions that match the "Expected Result" in the test case.
-        6. Return ONLY the Python code. No markdown formatting, no explanations outside the code.
+        1. Use ONLY the selectors that exist in the provided HTML.
+        2. Prefer ID → Name → CSS selectors.
+        3. Never hallucinate IDs or names.
+        4. Use selenium.webdriver + WebDriverWait + By.
+        5. Output ONLY Python code. No explanations.
         """
 
         user_prompt = f"""
-        ### TARGET HTML:
-        {html_content}
+        ### RAW HTML OF THE PAGE:
+        {html_raw}
 
-        ### TEST CASE TO AUTOMATE:
-        Feature: {test_case.get('Feature')}
-        Scenario: {test_case.get('Test_Scenario')}
-        Expected Result: {test_case.get('Expected_Result')}
+        ### EXTRACTED ELEMENT METADATA:
+        {json.dumps(meta, indent=2)}
+
+        ### TEST CASE:
+        Feature: {test_case.get("Feature")}
+        Scenario: {test_case.get("Test_Scenario")}
+        Expected Result: {test_case.get("Expected_Result")}
 
         ### INSTRUCTION:
-        Write the Selenium script now.
+        Generate a complete runnable Python Selenium script implementing this test.
         """
 
-        # 3. Call LLM
-        raw_response = self.llm.generate_response(system_prompt, user_prompt)
-        
-        # Clean formatting if LLM adds ```python blocks
-        clean_code = raw_response.replace("```python", "").replace("```", "").strip()
-        
-        return clean_code
+        return system_prompt, user_prompt
+
+    # ------------------------------------------------------
+    # Generate Final Selenium Script
+    # ------------------------------------------------------
+    def generate_script(self, test_case: Dict[str, Any], session_id: str) -> str:
+        # Load correct HTML
+        html_raw = self._load_session_html(session_id)
+
+        if not html_raw:
+            return "# ERROR: No HTML file found for this session."
+
+        # Extract metadata
+        meta = self._extract_html_metadata(html_raw)
+
+        # Build prompt
+        system_prompt, user_prompt = self._build_prompt(test_case, html_raw, meta)
+
+        # LLM call
+        raw_output = self.llm.generate_response(system_prompt, user_prompt)
+
+        # Clean ```python code fences
+        clean = raw_output.replace("```python", "").replace("```", "").strip()
+
+        return clean

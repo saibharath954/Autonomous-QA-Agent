@@ -72,8 +72,18 @@ class RAGService:
             if json_match:
                 json_str = json_match.group(0)
                 parsed_data = json.loads(json_str)
-                return parsed_data
-            
+
+                # ✨ Normalize Grounded_In for frontend (remove session ID)
+                cleaned = []
+                for tc in parsed_data:
+                    if "Grounded_In" in tc and isinstance(tc["Grounded_In"], str):
+                        # Replace all patterns: checkout__<uuid>.html → checkout.html
+                        tc["Grounded_In"] = re.sub(r"__[-a-f0-9]{36}\.html$", ".html", tc["Grounded_In"])
+
+                    cleaned.append(tc)
+
+                return cleaned
+
             # Step C: If no JSON array found, check if it's an empty response or error explanation
             if "context" in clean_text.lower() and "contain" in clean_text.lower():
                  # The LLM is explaining why it failed. Return empty list.

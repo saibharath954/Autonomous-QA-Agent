@@ -281,6 +281,11 @@ with tab1:
             for f in uploaded_files:
                 files_payload.append(("files", (f.name, f.getvalue(), f.type)))
             
+            # include html if provided (ensure key name 'files' so FastAPI accepts it in same list)
+            if uploaded_html:
+                # uploaded_html is a Streamlit UploadedFile; read bytes
+                files_payload.append(("files", (uploaded_html.name, uploaded_html.getvalue(), uploaded_html.type)))
+            
             try:
                 st.write("🔗 Connecting to backend...")
                 headers = {"X-Session-ID": st.session_state['session_id']}
@@ -468,7 +473,8 @@ with tab3:
                 
                 try:
                     payload = {"testcase_json": json.dumps(selected_test_case)}
-                    response = requests.post(f"{API_URL}/generate-selenium-script", data=payload)
+                    headers = {"X-Session-ID": st.session_state['session_id']}
+                    response = requests.post(f"{API_URL}/generate-selenium-script", data=payload, headers=headers)
                     
                     if response.status_code == 200:
                         script_content = response.json().get("script", "")
