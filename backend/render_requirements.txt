@@ -1,0 +1,84 @@
+--extra-index-url https://download.pytorch.org/whl/cpu
+
+# Core App Framework
+fastapi>=0.109.0
+uvicorn>=0.27.0
+python-multipart
+starlette
+h11
+
+# AI & Machine Learning (CPU Optimized)
+torch>=2.2.0
+sentence-transformers>=2.5.0
+transformers>=4.38.0
+huggingface-hub>=0.21.0
+safetensors
+tokenizers
+numpy<2.0.0
+scikit-learn
+scipy
+pandas
+pillow
+
+# Vector DB
+# Relaxed chromadb and let it resolve its own dependencies
+chromadb>=0.4.24
+onnxruntime
+overrides
+posthog
+flatbuffers
+bcrypt
+# CHANGED: Allow newer versions of pulsar-client
+pulsar-client>=3.5.0; sys_platform != 'win32'
+
+# LLM Providers
+groq
+
+# Utilities
+python-dotenv
+requests
+httpx
+beautifulsoup4
+soupsieve
+PyMuPDF
+pydantic>=2.0.0
+pydantic_core
+python-dateutil
+pytz
+PyYAML
+regex
+rich
+tenacity
+tqdm
+typing_extensions
+ujson
+watchfiles
+websockets
+click
+dnspython
+email_validator
+annotated-types
+anyio
+attrs
+certifi
+charset-normalizer
+idna
+sniffio
+urllib3
+
+# Frontend
+streamlit>=1.31.0
+altair
+blinker
+cachetools
+gitdb
+GitPython
+markdown-it-py
+mdurl
+pyarrow
+pydeck
+smmap
+toml
+tomli
+tornado
+watchdog
