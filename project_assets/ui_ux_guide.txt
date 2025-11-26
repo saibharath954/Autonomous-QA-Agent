@@ -1,13 +1,38 @@
-UI/UX Guidelines
+UI/UX Guidelines – E-Shop Checkout System
 
-1. Form Validation:
-   - All required fields must trigger an HTML5 validation warning if empty.
-   - Email validation errors must be displayed in red text (#FF0000).
-   - Error messages should appear inline next to the field.
+1. Form Validation
+   - All required fields must trigger default HTML5 validation when empty.
+   - Email validation errors must appear inline in red (#FF0000).
+   - Error messages must be short, clear, and placed directly next to the input field.
+   - Validation should not block updates to cart or shipping selections.
 
-2. Buttons:
-   - The 'Pay Now' button should be green (#008000) to indicate a primary action.
-   - 'Apply' discount button should be standard gray.
+2. Buttons
+   - “Pay Now” button:
+       - Background: Green (#008000)
+       - Text color: White
+       - Represents the primary call to action.
+   - “Apply” discount button:
+       - Styled in standard light gray.
+       - Should appear secondary to “Pay Now”.
 
-3. Success States:
-   - Upon successful payment, hide the form and display "Payment Successful!" in green text.
+3. Discount Interaction
+   - On valid code:
+       - Display success message in green.
+   - On invalid code:
+       - Display “Invalid Code” in red.
+   - Message must appear inline near the discount input.
+
+4. Success States
+   - After successful payment:
+       - Hide inline form errors.
+       - Display “Payment Successful!” centered and in green.
+       - The message should persist until the user navigates away.
+
+5. Layout
+   - Sections (Cart Summary, User Details, Shipping, Payment) must be clearly separated with headings.
+   - Spacing between form groups should be at least 12px for readability.
+
+6. Accessibility
+   - All interactive elements must be keyboard-accessible.
+   - Labels must be associated with input fields.
+   - Colors must meet minimum contrast guidelines.

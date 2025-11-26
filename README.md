@@ -1,19 +1,28 @@
 # 🧠 Autonomous QA Agent  
 ### *Automated Test Case Generation + Selenium Script Generation*
 
-This project implements an intelligent **Autonomous QA Agent** that ingests project documentation and HTML structure to automatically generate **test cases** and **Selenium Python scripts**.  
-The agent builds a “testing brain” using RAG (Retrieval-Augmented Generation) and produces test outputs strictly grounded in the provided documents. 
+The **Autonomous QA Agent** is an end-to-end intelligent testing system that ingests support documentation and the HTML structure of a target web application to automatically generate:
+
+- **Functional Test Cases**
+- **Positive & Negative Test Scenarios**
+- **Grounded Explanations referencing source documents**
+- **Runnable Selenium Python scripts**
+
+The system builds a “Testing Brain” using **Retrieval-Augmented Generation (RAG)** and guarantees **zero hallucination** by grounding every result strictly in the uploaded documents.
 
 ---
 
-# 📌 Features
+## 📌 Features
 
 ### ✅ **Document Ingestion & Knowledge Base**
 - Upload multiple support documents (PDF, MD, TXT, JSON).  
-- Upload the html structure of the target webpage.  
-- Automatic text extraction (PDF, MD, HTML, JSON parsers).  
-- Chunking + vector embedding using Sentence Transformers.  
-- Stores vectors in **ChromaDB** with metadata.
+- Automatic extraction using:
+  - PDF parsers (PyMuPDF)
+  - HTML DOM parsing (BeautifulSoup)
+  - Markdown/Text/JSON loaders
+- Intelligent chunking using **RecursiveCharacterTextSplitter**
+- Embedding generation using **Sentence Transformers**
+- Stores metadata-rich vectors in **ChromaDB**  
 
 ### ✅ **Test Case Generator**
 - Generates **positive & negative functional test cases**.  
@@ -21,7 +30,7 @@ The agent builds a “testing brain” using RAG (Retrieval-Augmented Generation
 - Output formats:
   - JSON  
   - Markdown tables  
-- Example (from assignment):  
+- Example:  
   ```json
   {
     "Test_ID": "TC-005",
@@ -47,10 +56,13 @@ The agent builds a “testing brain” using RAG (Retrieval-Augmented Generation
 * Upload zone for documents + HTML
 * “Build Knowledge Base” button
 * Prompt field for test case generation
+* Generating RAG-based test cases
 * UI to pick a test case and generate Selenium script
 * Syntax-highlighted code blocks
 
-### ✨ **Tech Stack**
+---
+
+## ✨ **Tech Stack**
 
 | Component       | Technology               |
 | --------------- | ------------------------ |
@@ -64,7 +76,7 @@ The agent builds a “testing brain” using RAG (Retrieval-Augmented Generation
 
 ---
 
-# 📂 Project Structure
+## 📂 Project Structure
 
 ```
 📁 autonomous-qa-agent/
@@ -106,74 +118,102 @@ The agent builds a “testing brain” using RAG (Retrieval-Augmented Generation
 
 ---
 
-# 🛠️ Installation & Setup
+## 🏗️ Architecture
 
-### **1️⃣ Create Virtual Environment**
+```
+User → Streamlit UI → FastAPI Backend
+           ↓              ↓
+     Document Upload   Ingestion & Chunking
+           ↓              ↓
+      Build KB Button → Embeddings → ChromaDB
+           ↓              ↓
+      Test Case Prompt → RAG Retrieval → LLM
+           ↓              ↓
+  Selenium Script Request → DOM Parser → Script Generator → Output
+``` 
 
+---
+
+## 🛠️ Installation & Setup
+
+### **1️⃣ Clone the Repository**
+```bash
+git clone https://github.com/saibharath954/Autonomous-QA-Agent.git
+cd autonomous-qa-agent
+```
+
+### **2️⃣ Set Up Backend Environment**
+Navigate into the backend directory:
+```bash
+cd backend
+```
+Create virtual environment
 ```bash
 python3 -m venv venv
 source venv/bin/activate   # macOS/Linux
 venv\Scripts\activate      # Windows
 ```
 
-### **2️⃣ Install Dependencies**
+### **3️⃣ Configure LLM Provider (Required)**
+This system supports GROQ or Ollama (local LLM).
+Create a `.env` file in the `backend/` folder:
+```bash
+touch .env
+```
+Add the following environment variables based on your choice:
+
+Option A: Use GROQ (Recommended for Fast Inference)
+```bash
+GROQ_API_KEY=your_key_here
+```
+Option B: Use OLLAMA (Local Model)
+```bash
+OLLAMA_BASE_URL=http://localhost:11434
+```
+
+### **4️⃣ Install Backend Dependencies**
 
 ```bash
 pip install -r requirements.txt
 ```
 
-### Required Versions
+### **5️⃣ Start Backend (FastAPI)**
+From inside `/backend` run:
+```bash
+uvicorn app.main:app --reload --port 8000
+```
+Backend will run at:
+```bash
+http://localhost:8000
+```
 
-* **Python 3.10+**
-* **FastAPI 0.110+**
-* **Streamlit 1.31+**
-* **ChromaDB 0.4+**
-* **Sentence Transformers**
-* **Selenium 4.0+**
-
+### **6️⃣ Start Frontend (Streamlit)**
+Open a second terminal and run:
+```bash
+cd streamlit_app
+streamlit run app.py
+```
+Frontend will start at:
+```bash
+http://localhost:8501
+```
 ---
 
-# ▶️ Running the Application
-
-### **Start Backend (FastAPI)**
-
-```bash
-uvicorn backend.main:app --reload --port 8000
-```
-
-### **Start Frontend (Streamlit)**
-
-```bash
-streamlit run frontend/app.py
-```
-
-### Application Workflow
+## 📘 Usage Examples
 
 1. Upload support documents + `checkout.html`.
 2. Click **Build Knowledge Base**.
-3. Ask:
+3. Go to Generate Test Cases tab and describe the feature to test.
 
-   ```
-   Generate functional test cases for discount code validation
-   ```
-4. Select a test case → Click **Generate Selenium Script**.
-5. Copy–paste the generated script into your automation framework.
-
----
-
-# 📘 Usage Examples
-
-### **Test Case Prompt**
+Example Prompt:
 
 ```
 Generate all positive and negative test cases for the discount code feature.
 ```
+4. Go to Generate Selenium Script tab.
+5. Select a test case → Click **Generate Selenium Script**.
 
-### **Selenium Script Prompt**
-
-Triggered automatically when user selects a single test case.
-
-### **- Example Output**
+Example Output:
 
 ```python
 from selenium.webdriver.support.ui import WebDriverWait
@@ -187,24 +227,35 @@ discount_input = WebDriverWait(driver, 10).until(
 )
 discount_input.send_keys("SAVE15")
 ```
+6. Copy–paste the generated script into your automation framework.
 
 ---
 
-# 📄 Explanation of Support Documents
+## 📄 Explanation of Support Documents
 
-| Document               | Purpose                                                          |
-| ---------------------- | ---------------------------------------------------------------- |
-| **product_specs.md**   | Contains business rules (e.g., discount % rules, shipping fees). |
-| **ui_ux_guide.txt**    | Contains UI/UX rules (button color, error message style).        |
-| **api_endpoints.json** | Optional API data for backend flows.                             |
-| **checkout.html**      | DOM structure; required for Selenium selectors.                  |
+| Document                       | Purpose                                                          |
+| ------------------------------ | ---------------------------------------------------------------- |
+| **product_specs.md**           | Contains business rules (e.g., discount % rules, shipping fees). |
+| **ui_ux_guide.txt**            | Contains UI/UX rules (button color, error message style).        |
+| **api_endpoints.json**         | Optional API data for backend flows.                             |
+| **E Shop Checkout System.pdf** | Additional formal specifications or client documentation.        |
+| **checkout.html**              | DOM structure; required for Selenium selectors.                  |
 
 These files are essential for grounding the QA agent’s reasoning.
 Test cases must reference source documents exactly as required. 
 
 ---
 
-# 🤝 Contributing
+## 🧪 Quality Guarantees
+
+* Zero hallucination — every test case references exact source documents.
+* Traceable outputs — each test case includes a `Grounded_In` field.
+* Script correctness — selectors come directly from DOM.
+* Reproducible flow — deterministic grounding process.
+
+---
+
+## 🤝 Contributing
 
 Pull requests are welcome.
 For major changes, please open an issue first to discuss scope and design.

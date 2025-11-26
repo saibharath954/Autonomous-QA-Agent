@@ -1,16 +1,68 @@
 {
+  "system": "E-Shop Checkout Backend API",
+  "version": "1.0",
   "endpoints": {
     "POST /apply_coupon": {
-      "description": "Validates coupon code",
-      "payload": {"code": "string"},
-      "response": {"valid": "boolean", "discount_percent": "integer"}
+      "description": "Validates the entered discount code and returns discount metadata.",
+      "payload_schema": {
+        "code": "string"
+      },
+      "example_request": {
+        "code": "SAVE15"
+      },
+      "example_response_valid": {
+        "valid": true,
+        "discount_percent": 15,
+        "message": "15% discount applied successfully."
+      },
+      "example_response_invalid": {
+        "valid": false,
+        "message": "Invalid discount code."
+      },
+      "notes": [
+        "Only one coupon can be applied at a time.",
+        "Discount percentage must match product specification rules."
+      ]
     },
+
     "POST /submit_order": {
-      "description": "Processes final order",
-      "payload": {
-        "user": {"name": "string", "email": "string", "address": "string"},
-        "cart": [{"item_id": "string", "qty": "integer"}],
-        "shipping": "standard|express"
+      "description": "Processes the final order and returns an order confirmation ID.",
+      "payload_schema": {
+        "user": {
+          "name": "string",
+          "email": "string",
+          "address": "string",
+          "phone": "string (optional)"
+        },
+        "cart": [
+          {
+            "item_id": "string",
+            "qty": "integer >= 1"
+          }
+        ],
+        "shipping": "standard | express",
+        "payment_method": "credit_card | paypal",
+        "discount_code": "string (optional)"
+      },
+      "example_request": {
+        "user": {
+          "name": "John Doe",
+          "email": "john@example.com",
+          "address": "221B Baker Street",
+          "phone": "9876543210"
+        },
+        "cart": [
+          { "item_id": "headphones", "qty": 1 },
+          { "item_id": "case", "qty": 1 }
+        ],
+        "shipping": "express",
+        "payment_method": "credit_card",
+        "discount_code": "SAVE15"
+      },
+      "example_response": {
+        "success": true,
+        "order_id": "ORD-874293",
+        "message": "Order placed successfully."
       }
     }
   }
